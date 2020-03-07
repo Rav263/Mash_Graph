@@ -2,9 +2,9 @@
 #include <GLFW/glfw3.h>
 
 #include "BMP/Bitmap.h"
-#include "shader_loading.h"
-#include "init_opengl.h"
-#include "buffers.h"
+#include "shaders/shader_creation.h"
+#include "libs/init_opengl.h"
+#include "libs/buffers.h"
 
 
 #include <iostream>

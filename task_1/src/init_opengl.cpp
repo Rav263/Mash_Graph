@@ -1,7 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "init_opengl.h"
+#include "libs/init_opengl.h"
 
 #include <iostream>
 #include <vector>
