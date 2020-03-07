@@ -34,7 +34,7 @@ int main() {
     auto buffers = create_buffers();
 
     // render image
-    render_image(shader_program, std::get<0>(buffers));
+    render_image(shader_program->get_shader_program(), std::get<0>(buffers));
 
     // read pixels and save to BMP
     unsigned int *image = new unsigned[SCR_WIDTH * SCR_HEIGHT];
@@ -48,6 +48,7 @@ int main() {
     glDeleteVertexArrays(1, &std::get<0>(buffers));
     glDeleteBuffers(1, &std::get<1>(buffers));
     glDeleteBuffers(1, &std::get<2>(buffers));
+    delete shader_program;
 
     glfwTerminate();
     return 0;
