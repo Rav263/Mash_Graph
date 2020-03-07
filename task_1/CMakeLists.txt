@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(rt)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
@@ -14,9 +14,10 @@ find_package(X11 REQUIRED)
 set (CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 
 add_subdirectory(external/glfw-3.3.2)
+add_subdirectory(external/glm)
 include_directories(include)
 
-set(LIBS glfw X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread)
+set(LIBS glfw X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread glm)
 
 add_library(GLAD src/libs/glad.c)
 set(LIBS ${LIBS} GLAD)
