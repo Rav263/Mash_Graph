@@ -21,6 +21,6 @@ set(LIBS glfw X11 Xrandr Xinerama Xi Xxf86vm Xcursor GL dl pthread)
 add_library(GLAD src/libs/glad.c)
 set(LIBS ${LIBS} GLAD)
 
-add_executable(rt src/task_1.cpp src/libs/Bitmap.cpp src/shaders/shader_loading.cpp src/init_opengl.cpp src/buffers.cpp)
+add_executable(rt src/task_1.cpp src/libs/Bitmap.cpp src/libs/create_shaders.cpp src/init_opengl.cpp src/buffers.cpp)
 
 target_link_libraries(rt ${LIBS})
