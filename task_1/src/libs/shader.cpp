@@ -9,7 +9,6 @@ Shader::Shader(std::string shader_path, GLenum shader_type) {
 
 void Shader::compile_shader(GLenum shader_type) {
     this->shader = glCreateShader(shader_type);
-    std::cerr << this->shader_source->get_shader_source() << std::endl;
     glShaderSource(this->shader, 1, &this->shader_source->shader_source, NULL);
     glCompileShader(this->shader);
 
@@ -38,10 +37,7 @@ Shader::~Shader() {
 
 
 ShaderProgram::ShaderProgram(int argc, std::vector<Shader *> shaders) {
-    std::cerr << "Create some program" << std::endl;
     this->shaders = shaders;
-    std::cerr << "SOME SHIT" << std::endl;
-    
     link_shader_program();
 }
 
@@ -49,7 +45,6 @@ void ShaderProgram::link_shader_program() {
     this->shader_program = glCreateProgram();
     
     for (Shader *shader : shaders) {
-        std::cerr << shader->get_shader() << std::endl;
         glAttachShader(this->shader_program, shader->get_shader());
     }
     glLinkProgram(this->shader_program);
