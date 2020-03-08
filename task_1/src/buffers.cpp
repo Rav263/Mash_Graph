@@ -2,8 +2,8 @@
 #include <GLFW/glfw3.h>
 
 #include "libs/buffers.h"
-#include "data/vertices.h"
-#include "data/indices.h"
+#include "data/cube.h"
+#include "data/cube_indices.h"
 
 #include <iostream>
 #include <vector>
