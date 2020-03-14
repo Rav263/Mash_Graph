@@ -5,6 +5,7 @@
 #include "shaders/shader_creation.h"
 #include "libs/init_opengl.h"
 #include "libs/buffers.h"
+#include "libs/object.h"
 
 #include <glm/glm.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
@@ -17,7 +18,7 @@
 #include <tuple>
 
 
-void render_image(uint32_t shader_program, uint32_t buffer) {
+void render_image(uint32_t shader_program, std::vector<Object *> &objects) {
     glUseProgram(shader_program);
     glEnable(GL_DEPTH_TEST);
 
@@ -31,21 +32,10 @@ void render_image(uint32_t shader_program, uint32_t buffer) {
     model = glm::rotate(model, glm::radians(-55.0f), glm::vec3(0.5f, 1.0f, 0.0f));
     view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
     projection = glm::perspective(glm::radians(45.0f), 1.0f, 0.1f, 100.0f);
-    
 
-    GLint model_loc = glGetUniformLocation(shader_program, "model");
-    GLint view_loc = glGetUniformLocation(shader_program, "view");
-    GLint proj_loc = glGetUniformLocation(shader_program, "projection");
-
-    glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
-    glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
-    glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(projection));
-
-
-    // draw triangle
-    glBindVertexArray(buffer);
-    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-    glBindVertexArray(0);
+    for (auto object : objects) {
+        object->draw_object(model, view, projection);
+    }
 }
 
 int main() {
@@ -56,10 +46,13 @@ int main() {
     auto shader_program = create_shader_program();
 
     // set up vertex buffers and configure vertex attributes 
-    auto buffers = create_buffers();
+    Object *cube = new Object("./objects/cube", shader_program->get_shader_program());
+    std::vector<Object *> objects;
+
+    objects.push_back(cube);
 
     // render image
-    render_image(shader_program->get_shader_program(), std::get<0>(buffers));
+    render_image(shader_program->get_shader_program(), objects);
 
     // read pixels and save to BMP
     unsigned int *image = new unsigned[SCR_WIDTH * SCR_HEIGHT];
@@ -70,9 +63,12 @@ int main() {
     delete[] image;
 
     // clean everything
-    glDeleteVertexArrays(1, &std::get<0>(buffers));
-    glDeleteBuffers(1, &std::get<1>(buffers));
-    glDeleteBuffers(1, &std::get<2>(buffers));
+    
+    /* Need to move into object class
+     * glDeleteVertexArrays(1, &std::get<0>(buffers));
+     * glDeleteBuffers(1, &std::get<1>(buffers));
+     * glDeleteBuffers(1, &std::get<2>(buffers));
+    */
     delete shader_program;
 
     glfwTerminate();
