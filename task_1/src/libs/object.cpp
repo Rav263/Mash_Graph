@@ -15,10 +15,14 @@
 #include <glm/gtx/string_cast.hpp>
 
 
-Object::Object(std::string name, uint32_t shader_program) {
+Object::Object(std::string name, uint32_t shader_program, glm::vec3 color, glm::vec3 position) {
     this->shader_program = shader_program;
     this->name = name;
+    this->color = color;
+    this->position = position;
+
     read_file();
+    
     this->buffer = std::get<0>(create_buffers(this->arrays));
 }
 
@@ -63,11 +67,15 @@ void Object::draw_object(glm::mat4 &model, glm::mat4 &view, glm::mat4 &projectio
     GLint model_loc = glGetUniformLocation(this->shader_program, "model");
     GLint view_loc = glGetUniformLocation(this->shader_program, "view");
     GLint proj_loc = glGetUniformLocation(this->shader_program, "projection");
+    GLint color_loc = glGetUniformLocation(this->shader_program, "color");
+    GLint location_loc = glGetUniformLocation(this->shader_program, "location");
 
     glUniformMatrix4fv(model_loc, 1, GL_FALSE, glm::value_ptr(model));
     glUniformMatrix4fv(view_loc, 1, GL_FALSE, glm::value_ptr(view));
     glUniformMatrix4fv(proj_loc, 1, GL_FALSE, glm::value_ptr(projection));
-
+    glUniform3fv(color_loc, 1, glm::value_ptr(this->color));
+    glUniform3fv(location_loc, 1, glm::value_ptr(this->position));
+    
 
     // draw triangle
     glBindVertexArray(this->buffer);

@@ -46,7 +46,11 @@ int main() {
     auto shader_program = create_shader_program();
 
     // set up vertex buffers and configure vertex attributes 
-    Object *cube = new Object("./objects/cube", shader_program->get_shader_program());
+    Object *cube = new Object("./objects/cube", 
+                              shader_program->get_shader_program(), 
+                              glm::vec3(1.0f, 1.0f, 1.0f),
+                              glm::vec3(0.4f, 0.f, 0.f));
+    
     std::vector<Object *> objects;
 
     objects.push_back(cube);

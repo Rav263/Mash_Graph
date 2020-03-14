@@ -18,14 +18,14 @@ struct Object_arrays {
 
 class Object {
     Object_arrays arrays;
-    glm::vec4 color;
+    glm::vec3 color;
     std::string name;
-    glm::vec4 position;
+    glm::vec3 position;
     uint32_t shader_program;
     uint32_t buffer;
 
 public:
-    Object(std::string, uint32_t);
+    Object(std::string, uint32_t, glm::vec3, glm::vec3);
     ~Object();
 
     void read_file();
