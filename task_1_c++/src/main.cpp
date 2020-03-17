@@ -55,14 +55,14 @@ bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vec
         float d = -(orig.y + 4) / dir.y; // the checkerboard plane has equation y = -4
         glm::vec3 pt = orig + dir * d;
 
-        if (d > 0 and std::abs(pt.x) < 20 and pt.z < 0 and pt.z > -50 and d < spheres_dist) {
+        if (d > 0 and std::abs(pt.x) < 1000 and pt.z < 1000 and pt.z > -3000 and d < spheres_dist) {
             checkerboard_dist = d;
             hit = pt;
-            N = glm::vec3(0,1,0);
+            N   = glm::vec3(0,1,0);
             material.diffuse_color = (int(.5 * hit.x + 1000) + int(.5 * hit.z)) & 1 ? glm::vec3(.3, .3, .3) : glm::vec3(.3, .2, .1);
         }
     }
-    return std::min(spheres_dist, checkerboard_dist) < 100;
+    return std::min(spheres_dist, checkerboard_dist) < 1000;
 }
 
 
@@ -148,12 +148,12 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
         }
     }
 
-    print_image(image, "./out.ppm", width, height);
-
     std::vector<glm::vec3> edges(image.size());
     detect_image_edges(image, edges, width, height);
 
+    uint32_t counter = 0;
 
+    #pragma omp parallel for
     for (int x = 1; x < width - 1; x++) {
         for (int y = 1; y < height - 1; y++) {
             // edges canvas is grayscaled
@@ -162,8 +162,8 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             
             // TODO: improve
             if(gray > 0.04) {
-                float t_x =  x - width / 2.0;
-                float t_y = -y +  height / 2.0;
+                float t_x =  x - width  / 2.0;
+                float t_y = -y + height / 2.0;
                 float dir_z = -height / (2. * std::tan(fov /2.));
 
                 auto c = image[x + y * width];
@@ -174,31 +174,35 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
                 c += cast_ray({0, 0, 0}, glm::normalize(glm::vec3(t_x, t_y + 0.5, dir_z)), objects, lights, 6) * weight;
                 c += cast_ray({0, 0, 0}, glm::normalize(glm::vec3(t_x + 0.5, t_y + 0.5, dir_z)), objects, lights, 6) * weight;
                 image[x + y * width] = c;
+                
+                counter++;
             }
         }
     }
-    print_image(edges, "./out_gray.ppm", width, height);
+    std::cout << counter << std::endl;
     print_image(image, "./out_ant.ppm", width, height);
 }
 
 
 int main() {
     Material      ivory(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.4, 0.4, 0.3),   50.);
-    Material      glass(1.5, glm::vec4(0.0,  0.5, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  125.);
+    Material      glass(1.5, glm::vec4(0.0,  1.0, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
     Material red_rubber(1.0, glm::vec4(0.9,  0.1, 0.0, 0.0), glm::vec3(0.3, 0.1, 0.1),   10.);
+    Material ivory_blue(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.1, 0.1, 0.6),   50.);
     Material     mirror(1.0, glm::vec4(0.0, 10.0, 0.8, 0.0), glm::vec3(1.0, 1.0, 1.0), 1425.);
 
     std::vector<Object *> objects;
     objects.push_back(new Sphere(glm::vec3(-3,    0,   -16), 2,      ivory));
     objects.push_back(new Sphere(glm::vec3(-1.0, -1.5, -12), 2,      glass));
-    objects.push_back(new Sphere(glm::vec3( 1.5, -0.5, -18), 3, red_rubber));
+    objects.push_back(new Cube  (glm::vec3( 10,  -1.5, -30), 5, red_rubber));
+    objects.push_back(new Cube  (glm::vec3( 10,  -1.5,  -7), 5, ivory_blue));
     objects.push_back(new Sphere(glm::vec3( 7,    5,   -18), 4,     mirror));
 
     
 
     std::vector<Light>  lights;
     lights.push_back(Light(glm::vec3(-20, 20,  20), 1.5));
-    lights.push_back(Light(glm::vec3( 30, 50, -25), 1.8));
+    lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
     lights.push_back(Light(glm::vec3( 30, 20,  30), 1.7));
 
     render(objects, lights);

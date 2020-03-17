@@ -2,6 +2,7 @@
 #define OBJECTS_H
 
 #include <glm/glm.hpp>
+#include <vector>
 
 struct Light {
     Light(const glm::vec3 &p, const float i)
@@ -38,7 +39,12 @@ public:
 
 class Cube : public Object {
 public:
-    Cube(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {}
+    std::vector<glm::vec3> bounds;
+    Cube(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {
+        float half = r / 2.0;
+        bounds.push_back(c - half);
+        bounds.push_back(c + half);
+    }
     virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
 };
 
