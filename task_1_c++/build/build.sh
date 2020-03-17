@@ -7,4 +7,4 @@ make -j4
 
 time ./rt
 
-feh out.ppm
+feh out_ant.ppm

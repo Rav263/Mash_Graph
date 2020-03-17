@@ -10,7 +10,7 @@ bool Sphere::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t
     if (d2 > radius * radius)
         return false;
 
-    float thc = sqrtf(radius * radius - d2);
+    float thc = std::sqrt(radius * radius - d2);
     
     t0       = tca - thc;
     float t1 = tca + thc;
@@ -18,4 +18,8 @@ bool Sphere::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t
     if (t0 < 0) t0 = t1;
     if (t0 < 0) return false;
     return true;
+}
+
+bool Cube::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
+   return glm::dot(dir,dir) > radius;
 }

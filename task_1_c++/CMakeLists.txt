@@ -13,6 +13,6 @@ include_directories(include)
 
 set(LIBS glm)
 
-add_executable(rt src/main.cpp src/objects.cpp)
+add_executable(rt src/main.cpp src/objects.cpp src/antialiasting.cpp)
 
 target_link_libraries(rt ${LIBS})

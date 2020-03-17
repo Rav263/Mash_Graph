@@ -24,15 +24,28 @@ struct Material {
     float specular_exponent;
 };
 
-struct Sphere {
+class Object {
+public:
     glm::vec3 center;
     float radius;
     Material material;
-
-    Sphere(const glm::vec3 &c, const float r, const Material &m) 
+    
+    Object(const glm::vec3 &c, const float r, const Material &m)
         : center(c), radius(r), material(m) {}
+    
+    virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const = 0;
+};
 
-    bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
+class Cube : public Object {
+public:
+    Cube(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {}
+    virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
+};
+
+class Sphere : public Object {
+public:
+    Sphere(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {}
+    virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
 };
 
 #endif
