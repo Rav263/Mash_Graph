@@ -1,6 +1,7 @@
 #! /bin/bash
 
 rm out.ppm
+rm ./rt
 cmake ..
 
 make -j4
