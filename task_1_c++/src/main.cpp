@@ -59,8 +59,8 @@ bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vec
             checkerboard_dist = d;
             hit = pt;
             N   = glm::vec3(0,1,0);
-            material = Material(1.0, glm::vec4(0.9, 20.0, 0.8, 0.0), glm::vec3(0, 0, 0), 200.);
-            material.diffuse_color = (int(.5 * hit.x + 1000) + int(.5 * hit.z)) & 1 ? glm::vec3(1., 1., 1.) : glm::vec3(0., 0., 0.);
+            material = Material(1.0, glm::vec4(0.9, 10.0, 0.8, 0.2), glm::vec3(0, 0, 0), 200.);
+            material.diffuse_color = (int(.5 * hit.x + 1000) + int(.5 * hit.z)) & 1 ? glm::vec3(.2, .2, .2) : glm::vec3(0., 0., 0.);
         }
     }
     return std::min(spheres_dist, checkerboard_dist) < 1000;
@@ -95,8 +95,8 @@ glm::vec3 cast_ray(const glm::vec3 &orig, const glm::vec3 &dir, const std::vecto
 
         Material tmpmaterial;
         
-        if (scene_intersect(shadow_orig, light_dir, objects, shadow_pt, shadow_N, tmpmaterial) and norm(shadow_pt-shadow_orig) < light_distance)
-            continue;
+        //if (scene_intersect(shadow_orig, light_dir, objects, shadow_pt, shadow_N, tmpmaterial) and norm(shadow_pt-shadow_orig) < light_distance)
+         //   continue;
 
         diffuse_light_intensity  += lights[i].intensity * std::max(0.f, glm::dot(light_dir , N));
         specular_light_intensity += powf(std::max(0.f, glm::dot(-reflect(-light_dir, N),dir)), material.specular_exponent) * lights[i].intensity;
@@ -130,13 +130,19 @@ void print_image(std::vector<glm::vec3> &image, std::string file_name, uint32_t 
     ofs.close();
 }
 
+glm::vec3 normalize_color(const glm::vec3 &now) {
+    return glm::vec3(std::max(0.f, std::min(1.f, now[0])), std::max(0.f, std::min(1.f, now[1])), std::max(0.f, std::min(1.f, now[2])));
+}
 
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
     const int   width    = 1920;
     const int   height   = 1080;
     const float fov      = M_PI/3.;
+    const glm::vec3 camera(0.2, 0.0, 0.3);
 
     std::vector<glm::vec3> image(width * height);
+    
+    uint32_t cnt = 0;
 
     #pragma omp parallel for
     for (size_t j = 0; j < height; j++) { // actual rendering loop
@@ -146,17 +152,23 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             float dir_y = -(j + 0.5) +height / 2.; // this flips the image at the same time
             float dir_z = -height / (2. * std::tan(fov /2.));
 
-            image[i + j * width] = cast_ray(glm::vec3(0,0,0), glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 10);
+            image[i + j * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 4));
+            auto c = image[i + j * width];
+
+            if (std::max(c[0], std::max(c[1], c[2])) > 1) cnt++;
+            if (std::min(c[0], std::min(c[1], c[2])) > 1) cnt++;
         }
     }
 
-    print_image(image, "./out.ppm", width, height);
+    std::cout << cnt << std::endl;
+
+    //print_image(image, "./out.ppm", width, height);
     std::vector<glm::vec3> edges(image.size());
     detect_image_edges(image, edges, width, height);
-    print_image(edges, "./out_edg.ppm", width, height);
+    //print_image(edges, "./out_edg.ppm", width, height);
 
     uint32_t counter = 0;
-
+    cnt = 0;
     #pragma omp parallel for
     for (int x = 1; x < width - 1; x++) {
         for (int y = 1; y < height - 1; y++) {
@@ -164,8 +176,7 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             // it means that color components (r, g, b) are equal
             float gray = edges[x + y * width][0];
             
-            // TODO: improve
-            if(gray > 0.04) {
+            if(gray > 0.02) {
                 float t_x =  x - width  / 2.0;
                 float t_y = -y + height / 2.0;
                 float dir_z = -height / (2. * std::tan(fov /2.));
@@ -174,16 +185,19 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
                 
                 float weight = 1.0 / 4;
                 c = c * weight;
-                c += cast_ray({0, 0, 0}, glm::normalize(glm::vec3(t_x + 0.5, t_y, dir_z)), objects, lights, 6) * weight;
-                c += cast_ray({0, 0, 0}, glm::normalize(glm::vec3(t_x, t_y + 0.5, dir_z)), objects, lights, 6) * weight;
-                c += cast_ray({0, 0, 0}, glm::normalize(glm::vec3(t_x + 0.5, t_y + 0.5, dir_z)), objects, lights, 6) * weight;
-                image[x + y * width] = c;
-                
+                c += cast_ray(camera, glm::normalize(glm::vec3(t_x + 0.5, t_y, dir_z)), objects, lights, 4) * weight;
+                c += cast_ray(camera, glm::normalize(glm::vec3(t_x, t_y + 0.5, dir_z)), objects, lights, 4) * weight;
+                c += cast_ray(camera, glm::normalize(glm::vec3(t_x + 0.5, t_y + 0.5, dir_z)), objects, lights, 4) * weight;
+                image[x + y * width] = normalize_color(c);
+                c = image[x + y *width];
+
+                if (std::max(c[0], std::max(c[1], c[2])) > 1) cnt++;
+                if (std::min(c[0], std::min(c[1], c[2])) < 0) cnt++;
                 counter++;
             }
         }
     }
-    std::cout << counter << std::endl;
+    std::cout << counter << " " << cnt << std::endl;
     print_image(image, "./out_ant.ppm", width, height);
 }
 
