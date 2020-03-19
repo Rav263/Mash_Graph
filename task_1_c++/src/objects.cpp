@@ -1,6 +1,7 @@
 #include "objects.h"
 #include <glm/glm.hpp>
-
+#include <glm/gtx/string_cast.hpp>
+#include <iostream>
 
 bool Sphere::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
     glm::vec3 L = center - orig;
@@ -18,6 +19,12 @@ bool Sphere::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t
     if (t0 < 0) t0 = t1;
     if (t0 < 0) return false;
     return true;
+}
+void Sphere::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
+    all_dist = dist_i;
+    hit = orig + dir*dist_i;
+    N = glm::normalize(hit - center);
+    material = this->material;
 }
 
 bool Cube::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
@@ -48,4 +55,32 @@ bool Cube::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0)
     } 
  
     return true; 
-} 
+}
+
+void Cube::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
+    all_dist = dist_i;
+    hit = orig + dir*dist_i;
+    
+    glm::vec3 point = hit - center;
+    
+    float min = std::numeric_limits<float>::max();
+    float distance = std::abs(radius - std::abs(point.x));
+    if (distance < min) {
+        min = distance;
+        N = glm::vec3(1, 0, 0);
+        N *= point.x < 0 ? -1 : 1;
+    }
+    distance = std::abs(radius - std::abs(point.y));
+    if (distance < min) {
+        min = distance;
+        N = glm::vec3(0, 1, 0);
+        N *= point.y < 0 ? -1 : 1;
+    }
+    distance = std::abs(radius - std::abs(point.z));
+    if (distance < min) { 
+        min = distance; 
+        N = glm::vec3(0, 0, 1);
+        N *= point.z < 0 ? -1 : 1;
+    } 
+    material = this->material;
+}

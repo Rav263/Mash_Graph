@@ -36,16 +36,13 @@ glm::vec3 refract(const  glm::vec3 &I, const glm::vec3 &N, const float eta_t, co
 
 
 bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vector<Object *> &objects, glm::vec3 &hit, glm::vec3 &N, Material &material) {
-    float spheres_dist = std::numeric_limits<float>::max();
+    float all_dist = std::numeric_limits<float>::max();
 
     for (size_t i = 0; i < objects.size(); i++) {
         float dist_i;
 
-        if (objects[i]->ray_intersect(orig, dir, dist_i) && dist_i < spheres_dist) {
-            spheres_dist = dist_i;
-            hit = orig + dir*dist_i;
-            N = glm::normalize(hit - objects[i]->center);
-            material = objects[i]->material;
+        if (objects[i]->ray_intersect(orig, dir, dist_i) && dist_i < all_dist) {
+            objects[i]->process(all_dist, hit, N, material, dist_i, orig, dir);
         }
     }
 
@@ -55,7 +52,7 @@ bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vec
         float d = -(orig.y + 4) / dir.y; // the checkerboard plane has equation y = -4
         glm::vec3 pt = orig + dir * d;
 
-        if (d > 0 and std::abs(pt.x) < 1000 and pt.z < 1000 and pt.z > -3000 and d < spheres_dist) {
+        if (d > 0 and std::abs(pt.x) < 1000 and pt.z < 1000 and pt.z > -3000 and d < all_dist) {
             checkerboard_dist = d;
             hit = pt;
             N   = glm::vec3(0,1,0);
@@ -63,7 +60,7 @@ bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vec
             material.diffuse_color = (int(.5 * hit.x + 1000) + int(.5 * hit.z)) & 1 ? glm::vec3(.2, .2, .2) : glm::vec3(0., 0., 0.);
         }
     }
-    return std::min(spheres_dist, checkerboard_dist) < 1000;
+    return std::min(all_dist, checkerboard_dist) < 1000;
 }
 
 
@@ -144,7 +141,7 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             float dir_y = -(j + 0.5) +height / 2.; // this flips the image at the same time
             float dir_z = -height / (2. * std::tan(fov /2.));
 
-            image[i + j * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 4));
+            image[i + j * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 6));
             auto c = image[i + j * width];
         }
     }

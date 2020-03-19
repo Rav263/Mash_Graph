@@ -35,6 +35,7 @@ public:
         : center(c), radius(r), material(m) {}
     
     virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const = 0;
+    virtual void process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) = 0;
 };
 
 class Cube : public Object {
@@ -46,12 +47,14 @@ public:
         bounds.push_back(c + half);
     }
     virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
+    virtual void process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir);
 };
 
 class Sphere : public Object {
 public:
     Sphere(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {}
     virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
+    virtual void process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir);
 };
 
 #endif
