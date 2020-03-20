@@ -4,6 +4,8 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <string>
+#include <map>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/string_cast.hpp>
@@ -11,6 +13,9 @@
 
 #include "objects.h"
 #include "antialiasting.h"
+
+uint32_t threads_num = 8;
+std::string out_file = "./out.ppm";
 
 float norm(const glm::vec3 &now) {
     return std::sqrt(glm::dot(now, now));
@@ -133,7 +138,7 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
 
     std::vector<glm::vec3> image(width * height);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(threads_num)
     for (size_t j = 0; j < height; j++) { // actual rendering loop
         for (size_t i = 0; i < width; i++) {
             
@@ -147,9 +152,9 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
     }
 
     std::vector<glm::vec3> edges(image.size());
-    detect_image_edges(image, edges, width, height);
+    detect_image_edges(image, edges, width, height, threads_num);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(threads_num)
     for (int x = 1; x < width - 1; x++) {
         for (int y = 1; y < height - 1; y++) {
             float gray = edges[x + y * width][0];
@@ -170,11 +175,10 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             }
         }
     }
-    print_image(image, "./out_ant.ppm", width, height);
+    print_image(image, out_file, width, height);
 }
 
-
-int main() {
+void first_scene() {
     Material      ivory(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.4, 0.4, 0.3),   50.);
     Material      glass(1.5, glm::vec4(0.1,  1.0, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
     Material red_rubber(1.0, glm::vec4(0.9,  0.1, 0.0, 0.0), glm::vec3(0.3, 0.1, 0.1),   10.);
@@ -195,6 +199,43 @@ int main() {
     lights.push_back(Light(glm::vec3( 30, 20,  30), 1.7));
 
     render(objects, lights);
+}
+
+void second_scene() {
+
+}
+
+void fird_scene() {
+
+}
+
+
+int main(int argc, char **argv) {
+    std::map<std::string, std::string> cmd_prams;
+    
+    for (int i = 0; i < argc; i++) {
+        std::string now(argv[i]);
+        if (now.size() and now[0] == '-') {
+            cmd_prams[now] = i == argc - 1 ? "" : argv[i + 1];
+        }
+    }
+
+    if (cmd_prams.find("-out") != cmd_prams.end()) {
+        out_file = cmd_prams["-out"];
+    }
+    
+    if (cmd_prams.find("-threads") != cmd_prams.end()) {
+        threads_num = std::atoi(cmd_prams["-threads"].c_str());
+    }
+
+    uint32_t scene_id = 1;
+    if (cmd_prams.find("-scene") != cmd_prams.end()) {
+        scene_id = std::atoi(cmd_prams["-scene"].c_str());
+    }
+
+    if (scene_id == 1) first_scene();
+    if (scene_id == 2) second_scene();
+    if (scene_id == 3) fird_scene();
 
     return 0;
 }

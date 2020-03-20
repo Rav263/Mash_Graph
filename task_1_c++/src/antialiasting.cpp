@@ -13,8 +13,8 @@ glm::vec3 get_gray(glm::vec3 &color) {
 }
 
 
-void change_color_to_gray(std::vector<glm::vec3> &image, std::vector<glm::vec3> &gray_image, uint32_t width, uint32_t height) {
-    #pragma omp parallel for
+void change_color_to_gray(std::vector<glm::vec3> &image, std::vector<glm::vec3> &gray_image, uint32_t width, uint32_t height, uint32_t threads_num) {
+    #pragma omp parallel for num_threads(threads_num)
     for (int x = 0; x < width; x++) {
         for (int y = 0; y < height; y++) {
             auto index = get_num(x, y, width);
@@ -35,12 +35,12 @@ float mattrix_y[3][3] =
 
 
 
-void detect_image_edges(std::vector<glm::vec3> &image, std::vector<glm::vec3> &edges, uint32_t width, uint32_t height) {
+void detect_image_edges(std::vector<glm::vec3> &image, std::vector<glm::vec3> &edges, uint32_t width, uint32_t height, uint32_t threads_num) {
     std::vector<glm::vec3> gray_image(image.size());
 
-    change_color_to_gray(image, gray_image, width, height);
+    change_color_to_gray(image, gray_image, width, height, threads_num);
 
-    #pragma omp parallel for
+    #pragma omp parallel for num_threads(threads_num)
     for (int x = 1; x < width - 1; x++) {
         for (int y = 1; y < height - 1; y++) {
             float gx = 0;
