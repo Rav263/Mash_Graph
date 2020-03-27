@@ -60,7 +60,21 @@ public:
 
 class Plane : public Object {
 public:
-    Plane(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {}
+    uint32_t dist;
+    glm::vec3 color_1;
+    glm::vec3 color_2;
+    bool ecen;
+    glm::vec3 size;
+    uint32_t fir, sec;
+    Plane(const glm::vec3 &c, const float r, const Material &m, const glm::vec3 &color_1, const glm::vec3 &color_2, const glm::vec3 &size, bool ecen) : Object(c, r, m) {
+        if      (c[0]) {this->dist = 0; this->fir = 1; this->sec = 2;}
+        else if (c[1]) {this->dist = 1; this->fir = 0; this->sec = 2;}
+        else           {this->dist = 2; this->fir = 0; this->sec = 1;}
+        this->color_1 = color_1;
+        this->color_2 = color_2;
+        this->ecen    = ecen;
+        this->size    = size;
+    }
     virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
     virtual void process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir);
 };

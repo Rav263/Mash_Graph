@@ -63,7 +63,6 @@ glm::vec3 cast_ray(const glm::vec3 &orig, const glm::vec3 &dir, const std::vecto
 
     if (depth <= 0 || !scene_intersect(orig, dir, objects, point, N, material)) {
         return back_color;
-        //return glm::vec3(0.1, 0.1, 0.1); // background color
     }
 
     glm::vec3 reflect_dir   = glm::normalize(reflect(dir, N));
@@ -178,14 +177,15 @@ void first_scene() {
     Material red_rubber(1.0, glm::vec4(0.9,  0.1, 0.0, 0.0), glm::vec3(0.3, 0.1, 0.1),   10.);
     Material ivory_blue(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.1, 0.1, 0.6),   50.);
     Material     mirror(1.0, glm::vec4(0.4, 10.0, 0.8, 0.0), glm::vec3( .0,  .8,  .0), 1425.);
-
+    Material  an_mirror(1.0, glm::vec4(0.9, 10.0, 0.8, 0.2), glm::vec3(  0,   0,   0),  200.);
+    
     std::vector<Object *> objects;
-    objects.push_back(new Sphere(glm::vec3(-3,    0,   -16), 2,      ivory));
-    objects.push_back(new Sphere(glm::vec3(-10,  -1.5, -12), 2,      glass));
-    objects.push_back(new Cube  (glm::vec3( 10,  -1.5, -25), 5, red_rubber));
-    objects.push_back(new Cube  (glm::vec3( 10,  -1.5,  -7), 5, ivory_blue));
-    objects.push_back(new Sphere(glm::vec3( 7,    5,   -30), 4,     mirror));
-    objects.push_back(new Plane (glm::vec3( 7,    5,   -30), 4,     mirror));
+    objects.push_back(new Sphere(glm::vec3(-3,    0,   -16),  2,      ivory));
+    objects.push_back(new Sphere(glm::vec3(-10,  -1.5, -12),  2,      glass));
+    objects.push_back(new Cube  (glm::vec3( 10,  -1.5, -25),  5, red_rubber));
+    objects.push_back(new Cube  (glm::vec3( 10,  -1.5,  -7),  5, ivory_blue));
+    objects.push_back(new Sphere(glm::vec3( 7,    5,   -30),  4,     mirror));
+    objects.push_back(new Plane (glm::vec3( 0,    1,     0), -4,  an_mirror, glm::vec3(.2, .2, .2), glm::vec3(0., 0., 0.), glm::vec3(1000, 1000, 1000), true));
     
 
     std::vector<Light>  lights;
@@ -197,11 +197,26 @@ void first_scene() {
 }
 
 void second_scene() {
+    Material      ivory(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.4, 0.4, 0.3),   50.);
     Material      glass(1.5, glm::vec4(0.1,  1.0, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
+    Material  an_mirror(1.0, glm::vec4(0.9, 10.0, 0.3, 0.2), glm::vec3(  0,   0,   0),  2.000);
+    Material red_rubber(1.0, glm::vec4(0.3,  0.5, 0.2, 0.0), glm::vec3(0.3, 0.1, 0.1),   10.);
+    Material ivory_blue(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.75, 0.25, 0.25),   50.);
+    Material     rubber(1.0, glm::vec4(0.5,  0.1, 0.0, 0.0), glm::vec3(0.3, 0.1, 0.1),   10.);
+    
     std::vector<Object *> objects;
-    objects.push_back(new Sphere(glm::vec3(-10,  -1.5, -12), 2,      glass));
+    objects.push_back(new Sphere(glm::vec3(-1, -1.5,   -18),   2,  ivory));
+    objects.push_back(new Cube  (glm::vec3( -5,-3.25,   -15), 1.5,  ivory_blue));
+    objects.push_back(new Plane (glm::vec3( 0,    1,     0),  -4,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 20, 30), false)); //bottom
+    objects.push_back(new Plane (glm::vec3( 1,    0,     0), -10,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.25, .25, .75), glm::vec3(10, 10, 30), false)); //left
+    objects.push_back(new Plane (glm::vec3( 0,    0,     1), -30,      rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 10, 30), false)); // back
+    objects.push_back(new Plane (glm::vec3(-1,    0,     0),  10,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .25, .25), glm::vec3(10, 10, 30), false)); //right
+    objects.push_back(new Plane (glm::vec3( 0,    1,     0),  10,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 20, 30), false)); //top
+    
     std::vector<Light>  lights;
-    lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
+    //lights.push_back(Light(glm::vec3(-20, 20,  20), 1.5));
+    //lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
+    lights.push_back(Light(glm::vec3(0, 14, -10), 1.7));
 
     render(objects, lights);
 }
