@@ -84,3 +84,26 @@ void Cube::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &mate
     } 
     material = this->material;
 }
+
+bool Plane::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
+    float d = -(orig.y + 4) / dir.y; // the checkerboard plane has equation y = -4
+    glm::vec3 pt = orig + dir * d;
+
+    if (d > 0 and std::abs(pt.x) < 1000 and pt.z < 1000 and pt.z > -3000) {
+        if (std::abs(dir.y) > 1e-3f) {
+            t0 = d;
+            return true;
+        }
+    }
+    return false;
+}
+
+void Plane::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
+    if (dist_i >= all_dist) return;
+    else all_dist = dist_i;
+    hit = orig + dir * dist_i; 
+    N   = glm::vec3(0,1,0);
+    material = Material(1.0, glm::vec4(0.9, 10.0, 0.8, 0.2), glm::vec3(0, 0, 0), 200.);
+    material.diffuse_color = (int(.5 * hit.x + 1000) + int(.5 * hit.z)) & 1 ? glm::vec3(.2, .2, .2) : glm::vec3(0., 0., 0.);
+ 
+}

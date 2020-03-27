@@ -16,6 +16,9 @@
 
 uint32_t threads_num = 8;
 std::string out_file = "./out.ppm";
+std::vector<glm::vec3> env;
+int32_t env_width, env_height;
+glm::vec3 back_color(0.1, 0.1, 0.1);
 
 float norm(const glm::vec3 &now) {
     return std::sqrt(glm::dot(now, now));
@@ -30,13 +33,12 @@ glm::vec3 reflect(const glm::vec3 &I, const glm::vec3 &N) {
 glm::vec3 refract(const  glm::vec3 &I, const glm::vec3 &N, const float eta_t, const float eta_i=1.f) { // Snell's law
     float cosi = -std::max(-1.f, std::min(1.f, glm::dot(I,N)));
 
-    if (cosi < 0)
-        return refract(I, -N, eta_i, eta_t); // if the ray comes from the inside the object, swap the air and the media
+    if (cosi < 0) return refract(I, -N, eta_i, eta_t);
     
     float eta = eta_i / eta_t;
     float k = 1 - eta * eta * (1 - cosi * cosi);
 
-    return k < 0 ? glm::vec3(1,0,0) : I*eta + N * (eta * cosi - std::sqrt(k)); // k<0 = total reflection, no ray to refract. I refract it anyways, this has no physical meaning
+    return k < 0 ? glm::vec3(1,0,0) : I*eta + N * (eta * cosi - std::sqrt(k));
 }
 
 
@@ -51,21 +53,7 @@ bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vec
         }
     }
 
-    float checkerboard_dist = std::numeric_limits<float>::max();
-    
-    if (std::abs(dir.y) > 1e-3f)  {
-        float d = -(orig.y + 4) / dir.y; // the checkerboard plane has equation y = -4
-        glm::vec3 pt = orig + dir * d;
-
-        if (d > 0 and std::abs(pt.x) < 1000 and pt.z < 1000 and pt.z > -3000 and d < all_dist) {
-            checkerboard_dist = d;
-            hit = pt;
-            N   = glm::vec3(0,1,0);
-            material = Material(1.0, glm::vec4(0.9, 10.0, 0.8, 0.2), glm::vec3(0, 0, 0), 200.);
-            material.diffuse_color = (int(.5 * hit.x + 1000) + int(.5 * hit.z)) & 1 ? glm::vec3(.2, .2, .2) : glm::vec3(0., 0., 0.);
-        }
-    }
-    return std::min(all_dist, checkerboard_dist) < 1000;
+    return all_dist < 1000;
 }
 
 
@@ -74,13 +62,16 @@ glm::vec3 cast_ray(const glm::vec3 &orig, const glm::vec3 &dir, const std::vecto
     Material material;
 
     if (depth <= 0 || !scene_intersect(orig, dir, objects, point, N, material)) {
-        return glm::vec3(0.1, 0.1, 0.1); // background color
+        return back_color;
+        //return glm::vec3(0.1, 0.1, 0.1); // background color
     }
 
     glm::vec3 reflect_dir   = glm::normalize(reflect(dir, N));
     glm::vec3 refract_dir   = glm::normalize(refract(dir, N, material.refractive_index));
+    
     glm::vec3 reflect_orig  = glm::dot(reflect_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f; // offset the original point to avoid occlusion by the object itself
     glm::vec3 refract_orig  = glm::dot(refract_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f;
+    
     glm::vec3 reflect_color = cast_ray(reflect_orig, reflect_dir, objects, lights, depth - 1);
     glm::vec3 refract_color = cast_ray(refract_orig, refract_dir, objects, lights, depth - 1);
 
@@ -126,9 +117,11 @@ void print_image(std::vector<glm::vec3> &image, std::string file_name, uint32_t 
     ofs.close();
 }
 
+
 glm::vec3 normalize_color(const glm::vec3 &now) {
     return glm::vec3(std::max(0.f, std::min(1.f, now[0])), std::max(0.f, std::min(1.f, now[1])), std::max(0.f, std::min(1.f, now[2])));
 }
+
 
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
     const int   width    = 1920;
@@ -178,6 +171,7 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
     print_image(image, out_file, width, height);
 }
 
+
 void first_scene() {
     Material      ivory(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.4, 0.4, 0.3),   50.);
     Material      glass(1.5, glm::vec4(0.1,  1.0, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
@@ -191,18 +185,25 @@ void first_scene() {
     objects.push_back(new Cube  (glm::vec3( 10,  -1.5, -25), 5, red_rubber));
     objects.push_back(new Cube  (glm::vec3( 10,  -1.5,  -7), 5, ivory_blue));
     objects.push_back(new Sphere(glm::vec3( 7,    5,   -30), 4,     mirror));
+    objects.push_back(new Plane (glm::vec3( 7,    5,   -30), 4,     mirror));
     
 
     std::vector<Light>  lights;
     lights.push_back(Light(glm::vec3(-20, 20,  20), 1.5));
     lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
     lights.push_back(Light(glm::vec3( 30, 20,  30), 1.7));
-
+    
     render(objects, lights);
 }
 
 void second_scene() {
+    Material      glass(1.5, glm::vec4(0.1,  1.0, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
+    std::vector<Object *> objects;
+    objects.push_back(new Sphere(glm::vec3(-10,  -1.5, -12), 2,      glass));
+    std::vector<Light>  lights;
+    lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
 
+    render(objects, lights);
 }
 
 void fird_scene() {

@@ -57,4 +57,13 @@ public:
     virtual void process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir);
 };
 
+
+class Plane : public Object {
+public:
+    Plane(const glm::vec3 &c, const float r, const Material &m) : Object(c, r, m) {}
+    virtual bool ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const;
+    virtual void process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir);
+};
+
+
 #endif
