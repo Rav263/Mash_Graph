@@ -9,6 +9,7 @@ set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O5 -fopenmp")
 
 add_subdirectory(external/glm)
+
 include_directories(include)
 
 set(LIBS glm)
@@ -16,3 +17,9 @@ set(LIBS glm)
 add_executable(rt src/main.cpp src/objects.cpp src/antialiasting.cpp)
 
 target_link_libraries(rt ${LIBS})
+
+file(GLOB ENVMAPS env/*.ppm)
+foreach(ENVMAP ${ENVMAPS})
+    file(COPY ${ENVMAP} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/env)
+endforeach(ENVMAP)
+
