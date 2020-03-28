@@ -20,18 +20,18 @@ std::vector<glm::vec3> env;
 int32_t env_width, env_height;
 glm::vec3 back_color(0.1, 0.1, 0.1);
 
-float norm(const glm::vec3 &now) {
+inline float norm(const glm::vec3 &now) {
     return std::sqrt(glm::dot(now, now));
 }
 
 
-glm::vec3 reflect(const glm::vec3 &I, const glm::vec3 &N) {
+inline glm::vec3 reflect(const glm::vec3 &I, const glm::vec3 &N) {
     return I - N * 2.f * (glm::dot(I,N));
 }
 
 
 glm::vec3 refract(const  glm::vec3 &I, const glm::vec3 &N, const float eta_t, const float eta_i=1.f) { // Snell's law
-    float cosi = -std::max(-1.f, std::min(1.f, glm::dot(I,N)));
+    float cosi = -glm::dot(I, N);
 
     if (cosi < 0) return refract(I, -N, eta_i, eta_t);
     
@@ -65,29 +65,27 @@ glm::vec3 cast_ray(const glm::vec3 &orig, const glm::vec3 &dir, const std::vecto
         return back_color;
     }
 
-    glm::vec3 reflect_dir   = glm::normalize(reflect(dir, N));
-    glm::vec3 refract_dir   = glm::normalize(refract(dir, N, material.refractive_index));
+    glm::vec3 reflect_dir   = reflect(dir, N);
+    glm::vec3 refract_dir   = refract(dir, N, material.refractive_index);
     
-    glm::vec3 reflect_orig  = glm::dot(reflect_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f; // offset the original point to avoid occlusion by the object itself
-    glm::vec3 refract_orig  = glm::dot(refract_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f;
-    
-    glm::vec3 reflect_color = cast_ray(reflect_orig, reflect_dir, objects, lights, depth - 1);
-    glm::vec3 refract_color = cast_ray(refract_orig, refract_dir, objects, lights, depth - 1);
+    glm::vec3 reflect_color = cast_ray(glm::dot(reflect_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f, reflect_dir, objects, lights, depth - 1);
+    glm::vec3 refract_color = cast_ray(glm::dot(refract_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f, refract_dir, objects, lights, depth - 1);
 
     float diffuse_light_intensity = 0;
     float specular_light_intensity = 0;
 
     for (size_t i = 0; i < lights.size(); i++) {
         glm::vec3 light_dir  = glm::normalize(lights[i].position - point);
-        float light_distance = norm(lights[i].position - point);
 
         glm::vec3 shadow_orig = glm::dot(light_dir,N) < 0 ? point - N * 1e-3f : point + N * 1e-3f; // checking if the point lies in the shadow of the lights[i]
         glm::vec3 shadow_pt, shadow_N;
 
         Material tmpmaterial;
+        if (scene_intersect(shadow_orig, light_dir, objects, shadow_pt, shadow_N, tmpmaterial) && norm(shadow_pt - shadow_orig) < norm(lights[i].position - point))
+            continue;
 
         diffuse_light_intensity  += lights[i].intensity * std::max(0.f, glm::dot(light_dir , N));
-        specular_light_intensity += powf(std::max(0.f, glm::dot(-reflect(-light_dir, N),dir)), material.specular_exponent) * lights[i].intensity;
+        specular_light_intensity += std::pow(std::max(0.f, glm::dot(-reflect(-light_dir, N),dir)), material.specular_exponent) * lights[i].intensity;
     }
 
     return material.diffuse_color * diffuse_light_intensity  * material.albedo[0] + 
@@ -138,13 +136,13 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             float dir_y = -(j + 0.5) +height / 2.; // this flips the image at the same time
             float dir_z = -height / (2. * std::tan(fov /2.));
 
-            image[i + j * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 6));
-            auto c = image[i + j * width];
+            image[i + j * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 4));
         }
     }
 
     std::vector<glm::vec3> edges(image.size());
     detect_image_edges(image, edges, width, height, threads_num);
+    print_image(edges, "./out_edg.ppm", width, height);
 
     #pragma omp parallel for num_threads(threads_num)
     for (int x = 1; x < width - 1; x++) {
@@ -207,16 +205,16 @@ void second_scene() {
     std::vector<Object *> objects;
     objects.push_back(new Sphere(glm::vec3(-1, -1.5,   -18),   2,  ivory));
     objects.push_back(new Cube  (glm::vec3( -5,-3.25,   -15), 1.5,  ivory_blue));
-    objects.push_back(new Plane (glm::vec3( 0,    1,     0),  -4,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 20, 30), false)); //bottom
+    objects.push_back(new Plane (glm::vec3( 0,    1,     0),  -4,      rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 20, 30), false)); //bottom
     objects.push_back(new Plane (glm::vec3( 1,    0,     0), -10,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.25, .25, .75), glm::vec3(10, 10, 30), false)); //left
     objects.push_back(new Plane (glm::vec3( 0,    0,     1), -30,      rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 10, 30), false)); // back
     objects.push_back(new Plane (glm::vec3(-1,    0,     0),  10,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .25, .25), glm::vec3(10, 10, 30), false)); //right
     objects.push_back(new Plane (glm::vec3( 0,    1,     0),  10,  red_rubber, glm::vec3(0. , 0. , 0. ), glm::vec3(.75, .75, .75), glm::vec3(10, 20, 30), false)); //top
     
     std::vector<Light>  lights;
-    //lights.push_back(Light(glm::vec3(-20, 20,  20), 1.5));
+    lights.push_back(Light(glm::vec3(0, 8,  -20), 1.5));
     //lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
-    lights.push_back(Light(glm::vec3(0, 14, -10), 1.7));
+    lights.push_back(Light(glm::vec3(0, 7, 0), 1.7));
 
     render(objects, lights);
 }
