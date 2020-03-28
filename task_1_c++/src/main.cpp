@@ -16,14 +16,11 @@
 
 uint32_t threads_num = 8;
 std::string out_file = "./out.ppm";
-std::vector<glm::vec3> env;
-int32_t env_width, env_height;
 glm::vec3 back_color(0.1, 0.1, 0.1);
 
 inline float norm(const glm::vec3 &now) {
     return std::sqrt(glm::dot(now, now));
 }
-
 
 inline glm::vec3 reflect(const glm::vec3 &I, const glm::vec3 &N) {
     return I - N * 2.f * (glm::dot(I,N));
@@ -121,8 +118,8 @@ glm::vec3 normalize_color(const glm::vec3 &now) {
 
 
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
-    const int   width    = 1920;
-    const int   height   = 1080;
+    const int   width    = 1280;//= 1920;
+    const int   height   = 720;//= 1080;
     const float fov      = M_PI/3.;
     const glm::vec3 camera(0.2, 0.0, 0.3);
 
@@ -142,14 +139,14 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
 
     std::vector<glm::vec3> edges(image.size());
     detect_image_edges(image, edges, width, height, threads_num);
-    print_image(edges, "./out_edg.ppm", width, height);
+    //print_image(edges, "./out_edg.ppm", width, height);
 
     #pragma omp parallel for num_threads(threads_num)
     for (int x = 1; x < width - 1; x++) {
         for (int y = 1; y < height - 1; y++) {
             float gray = edges[x + y * width][0];
             
-            if(gray > 0.02) {
+            if(gray > 0.2) {
                 float t_x =  x - width  / 2.0;
                 float t_y = -y + height / 2.0;
                 float dir_z = -height / (2. * std::tan(fov /2.));
@@ -165,6 +162,7 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
             }
         }
     }
+
     print_image(image, out_file, width, height);
 }
 
