@@ -1,9 +1,5 @@
-#include <cmath>
-#include <limits>
 #include <iostream>
-#include <fstream>
 #include <vector>
-#include <algorithm>
 #include <string>
 #include <map>
 
@@ -14,84 +10,7 @@
 #include "objects.h"
 #include "antialiasting.h"
 #include "file_io.h"
-
-uint32_t threads_num = 8;
-std::string out_file = "./out.ppm";
-glm::vec3 back_color(0.1, 0.1, 0.1);
-
-inline float norm(const glm::vec3 &now) {
-    return std::sqrt(glm::dot(now, now));
-}
-
-inline glm::vec3 reflect(const glm::vec3 &I, const glm::vec3 &N) {
-    return I - N * 2.f * (glm::dot(I,N));
-}
-
-
-glm::vec3 refract(const  glm::vec3 &I, const glm::vec3 &N, const float eta_t, const float eta_i=1.f) { // Snell's law
-    float cosi = -glm::dot(I, N);
-
-    if (cosi < 0) return refract(I, -N, eta_i, eta_t);
-    
-    float eta = eta_i / eta_t;
-    float k = 1 - eta * eta * (1 - cosi * cosi);
-
-    return k < 0 ? glm::vec3(1,0,0) : I*eta + N * (eta * cosi - std::sqrt(k));
-}
-
-
-bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vector<Object *> &objects, glm::vec3 &hit, glm::vec3 &N, Material &material) {
-    float all_dist = std::numeric_limits<float>::max();
-
-    for (size_t i = 0; i < objects.size(); i++) {
-        float dist_i;
-
-        if (objects[i]->ray_intersect(orig, dir, dist_i) && dist_i < all_dist) {
-            objects[i]->process(all_dist, hit, N, material, dist_i, orig, dir);
-        }
-    }
-
-    return all_dist < 1000;
-}
-
-
-glm::vec3 cast_ray(const glm::vec3 &orig, const glm::vec3 &dir, const std::vector<Object *> &objects, const std::vector<Light> &lights, size_t depth) {
-    glm::vec3 point, N;
-    Material material;
-
-    if (depth <= 0 || !scene_intersect(orig, dir, objects, point, N, material)) {
-        return back_color;
-    }
-
-    glm::vec3 reflect_dir   = reflect(dir, N);
-    glm::vec3 refract_dir   = refract(dir, N, material.refractive_index);
-    
-    glm::vec3 reflect_color = cast_ray(glm::dot(reflect_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f, reflect_dir, objects, lights, depth - 1);
-    glm::vec3 refract_color = cast_ray(glm::dot(refract_dir, N) < 0 ? point - N * 1e-3f : point + N * 1e-3f, refract_dir, objects, lights, depth - 1);
-
-    float diffuse_light_intensity = 0;
-    float specular_light_intensity = 0;
-
-    for (size_t i = 0; i < lights.size(); i++) {
-        glm::vec3 light_dir  = glm::normalize(lights[i].position - point);
-
-        glm::vec3 shadow_orig = glm::dot(light_dir,N) < 0 ? point - N * 1e-3f : point + N * 1e-3f; // checking if the point lies in the shadow of the lights[i]
-        glm::vec3 shadow_pt, shadow_N;
-
-        Material tmpmaterial;
-        if (scene_intersect(shadow_orig, light_dir, objects, shadow_pt, shadow_N, tmpmaterial) && norm(shadow_pt - shadow_orig) < norm(lights[i].position - point))
-            continue;
-
-        diffuse_light_intensity  += lights[i].intensity * std::max(0.f, glm::dot(light_dir , N));
-        specular_light_intensity += std::pow(std::max(0.f, glm::dot(-reflect(-light_dir, N),dir)), material.specular_exponent) * lights[i].intensity;
-    }
-
-    return material.diffuse_color * diffuse_light_intensity  * material.albedo[0] + 
-           glm::vec3(1., 1., 1.)  * specular_light_intensity * material.albedo[1] + 
-           reflect_color          * material.albedo[2] + 
-           refract_color          * material.albedo[3];
-}
-
+#include "scene.h"
 
 
 glm::vec3 normalize_color(const glm::vec3 &now) {
