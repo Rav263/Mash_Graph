@@ -21,20 +21,20 @@ glm::vec3 normalize_color(const glm::vec3 &now) {
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
     const int   width    = 1280;//= 1920;
     const int   height   = 720;//= 1080;
-    const float fov      = M_PI/3.;
+    const float fov      = M_PI / 3.;
     const glm::vec3 camera(0.2, 0.0, 0.3);
 
     std::vector<glm::vec3> image(width * height);
 
     #pragma omp parallel for num_threads(threads_num)
-    for (size_t j = 0; j < height; j++) { // actual rendering loop
-        for (size_t i = 0; i < width; i++) {
+    for (int32_t y = 0; y < height; y++) { 
+        for (int32_t x = 0; x < width; x++) {
             
-            float dir_x =  (i + 0.5) -width  / 2.;
-            float dir_y = -(j + 0.5) +height / 2.; // this flips the image at the same time
-            float dir_z = -height / (2. * std::tan(fov /2.));
+            float dir_x =  (x + 0.5) -width  / 2.;
+            float dir_y = -(y + 0.5) +height / 2.; // this flips the image at the same time
+            float dir_z = -height / (2. * std::tan(fov / 2.));
 
-            image[i + j * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 4));
+            image[x + y * width] = normalize_color(cast_ray(camera, glm::normalize(glm::vec3(dir_x, dir_y, dir_z)), objects, lights, 4));
         }
     }
 
@@ -43,14 +43,15 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
     //print_image(edges, "./out_edg.ppm", width, height);
 
     #pragma omp parallel for num_threads(threads_num)
-    for (int x = 1; x < width - 1; x++) {
-        for (int y = 1; y < height - 1; y++) {
+    for (int32_t x = 1; x < width - 1; x++) {
+        for (int32_t y = 1; y < height - 1; y++) {
             float gray = edges[x + y * width][0];
             
             if(gray > 0.2) {
                 float t_x =  x - width  / 2.0;
                 float t_y = -y + height / 2.0;
-                float dir_z = -height / (2. * std::tan(fov /2.));
+                
+                float dir_z = -height / (2. * std::tan(fov / 2.));
 
                 auto c = image[x + y * width];
                 

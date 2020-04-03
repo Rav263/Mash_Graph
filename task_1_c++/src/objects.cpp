@@ -20,12 +20,15 @@ bool Sphere::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t
     if (t0 < 0) return false;
     return true;
 }
+
+
 void Sphere::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
     all_dist = dist_i;
     hit = orig + dir*dist_i;
     N = glm::normalize(hit - center);
     material = this->material;
 }
+
 
 bool Cube::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
     glm::vec3 invdir = 1.0f / dir;
@@ -57,6 +60,7 @@ bool Cube::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0)
     return true; 
 }
 
+
 void Cube::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
     all_dist = dist_i;
     hit = orig + dir*dist_i;
@@ -85,6 +89,7 @@ void Cube::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &mate
     material = this->material;
 }
 
+
 bool Plane::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
     float d = -(orig[dist] - radius) / dir[dist]; 
     glm::vec3 pt = orig + dir * d;
@@ -97,6 +102,7 @@ bool Plane::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0
     }
     return false;
 }
+
 
 void Plane::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
     if (dist_i >= all_dist) return;
