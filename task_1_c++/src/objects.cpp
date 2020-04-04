@@ -5,26 +5,26 @@
 
 bool Sphere::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0) const {
     glm::vec3 L = center - orig;
-    float tca   = glm::dot(L, dir);
-    float d2    = glm::dot(L, L) - tca * tca;
-
-    if (d2 > radius * radius)
-        return false;
-
-    float thc = std::sqrt(radius * radius - d2);
     
-    t0       = tca - thc;
-    float t1 = tca + thc;
+    auto tca   = glm::dot(L, dir);
+    auto d2    = glm::dot(L, L) - tca * tca;
 
-    if (t0 < 0) t0 = t1;
+    if (d2 > radius * radius) return false;
+
+    auto thc = std::sqrt(radius * radius - d2);
+
+    t0  = tca - thc;
+    
+    if (t0 < 0) t0 = tca + thc;
     if (t0 < 0) return false;
     return true;
 }
 
 
-void Sphere::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
-    all_dist = dist_i;
-    hit = orig + dir*dist_i;
+void Sphere::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist, const glm::vec3 &orig, const glm::vec3 &dir) {
+    all_dist = dist;
+    hit = orig + dir * dist;
+
     N = glm::normalize(hit - center);
     material = this->material;
 }
@@ -61,31 +61,36 @@ bool Cube::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0)
 }
 
 
-void Cube::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
-    all_dist = dist_i;
-    hit = orig + dir*dist_i;
+void Cube::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist, const glm::vec3 &orig, const glm::vec3 &dir) {
+    all_dist = dist;
+    hit = orig + dir * dist;
     
     glm::vec3 point = hit - center;
     
-    float min = std::numeric_limits<float>::max();
-    float distance = std::abs(radius - std::abs(point.x));
+    auto min = std::numeric_limits<float>::max();
+    
+    auto distance = std::abs(radius - std::abs(point.x));
+    
     if (distance < min) {
         min = distance;
         N = glm::vec3(1, 0, 0);
         N *= point.x < 0 ? -1 : 1;
     }
+    
     distance = std::abs(radius - std::abs(point.y));
     if (distance < min) {
         min = distance;
         N = glm::vec3(0, 1, 0);
         N *= point.y < 0 ? -1 : 1;
     }
+    
     distance = std::abs(radius - std::abs(point.z));
     if (distance < min) { 
         min = distance; 
         N = glm::vec3(0, 0, 1);
         N *= point.z < 0 ? -1 : 1;
     } 
+    
     material = this->material;
 }
 
@@ -104,11 +109,13 @@ bool Plane::ray_intersect(const glm::vec3 &orig, const glm::vec3 &dir, float &t0
 }
 
 
-void Plane::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist_i, const glm::vec3 &orig, const glm::vec3 &dir) {
-    if (dist_i >= all_dist) return;
-    else all_dist = dist_i;
-    hit = orig + dir * dist_i; 
+void Plane::process(float &all_dist, glm::vec3 &hit, glm::vec3 &N, Material &material, float &dist, const glm::vec3 &orig, const glm::vec3 &dir) {
+    if (dist >= all_dist) return;
+    else all_dist = dist;
+    
+    hit = orig + dir * dist; 
     N   = center;
+
     material = this->material;
     material.diffuse_color = (int(.5 * hit[fir] + 1000) + int(.5 * hit[sec])) & 1 and ecen ? color_1 : color_2; 
 }

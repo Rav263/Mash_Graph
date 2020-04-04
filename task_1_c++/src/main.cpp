@@ -19,8 +19,9 @@ glm::vec3 normalize_color(const glm::vec3 &now) {
 
 
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
-    const int   width    = 1280;//= 1920;
-    const int   height   = 720;//= 1080;
+    const int   width    = 1024; 
+    const int   height   = 600;
+
     const float fov      = M_PI / 3.;
     const glm::vec3 camera(0.2, 0.0, 0.3);
 
@@ -113,14 +114,9 @@ void second_scene() {
     
     std::vector<Light>  lights;
     lights.push_back(Light(glm::vec3(0, 8,  -20), 1.5));
-    //lights.push_back(Light(glm::vec3( 30, 50, -25), 2.5));
     lights.push_back(Light(glm::vec3(0, 7, 0), 1.7));
 
     render(objects, lights);
-}
-
-void fird_scene() {
-
 }
 
 
@@ -149,7 +145,6 @@ int main(int argc, char **argv) {
 
     if (scene_id == 1) first_scene();
     if (scene_id == 2) second_scene();
-    if (scene_id == 3) fird_scene();
 
     return 0;
 }
