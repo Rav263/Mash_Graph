@@ -7,6 +7,17 @@
 #include "objects.h"
 #include "scene.h"
 
+glm::vec3 refract(const  glm::vec3 &I, const glm::vec3 &N, const float eta_t, const float eta_i=1.f) {
+    auto cosi = -glm::dot(I, N);
+
+    if (cosi < 0) return refract(I, -N, eta_i, eta_t);
+    
+    auto eta = eta_i / eta_t;
+    auto k = 1 - eta * eta * (1 - cosi * cosi);
+
+    return k < 0 ? glm::vec3(1,0,0) : I * eta + N * (eta * cosi - std::sqrt(k));
+}
+
 
 bool scene_intersect(const glm::vec3 &orig, const glm::vec3 &dir, const std::vector<Object *> &objects, glm::vec3 &hit, glm::vec3 &N, Material &material) {
     float all_dist = std::numeric_limits<float>::max();
