@@ -19,8 +19,8 @@ glm::vec3 normalize_color(const glm::vec3 &now) {
 
 
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
-    const int   width    = 1024; 
-    const int   height   = 600;
+    const int   width    = 960; 
+    const int   height   = 540;
 
     const float fov      = M_PI / 3.;
     const glm::vec3 camera(0.2, 0.0, 0.3);

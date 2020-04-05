@@ -44,9 +44,9 @@ void print_image(std::vector<glm::vec3> &image, std::string file_name, uint32_t 
         
         if (max > 1) c = c * (1.f / max);
 
-        px.r       = c[0] * 255;
+        px.r       = c[2] * 255;
         px.g       = c[1] * 255;
-        px.b       = c[2] * 255;
+        px.b       = c[0] * 255;
         pixels2[i] = px;
     }
 
