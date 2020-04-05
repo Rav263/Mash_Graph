@@ -14,12 +14,28 @@ struct Light {
 
 struct Material {
     Material(const float r, const glm::vec4 &a, const glm::vec3 &color, const float spec) 
-        : refractive_index(r), albedo(a), diffuse_color(color), specular_exponent(spec) {}
+        : refractive_index(r), diffuse_color(color), specular_exponent(spec) {
+        
+        diff_coof = a[0];
+        spec_coof = a[1];
+        reflect_coof = a[2];
+        refract_coof = a[3];
+ 
+    }
     
     Material() 
-        : refractive_index(1), albedo({1,0,0,0}), diffuse_color(), specular_exponent() {}
+        : refractive_index(1), diffuse_color(), specular_exponent() {
+        diff_coof = 1.0;
+        spec_coof = 0.;
+        reflect_coof = 0.;
+        refract_coof = 0.;
+    }
     
     float refractive_index;
+    float diff_coof;
+    float spec_coof;
+    float reflect_coof;
+    float refract_coof;
     glm::vec4 albedo;
     glm::vec3 diffuse_color;
     float specular_exponent;
