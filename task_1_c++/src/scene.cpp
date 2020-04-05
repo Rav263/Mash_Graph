@@ -49,7 +49,7 @@ glm::vec3 cast_ray(const glm::vec3 &orig, const glm::vec3 &dir, const std::vecto
     if (depth <= 0 || !scene_intersect(orig, dir, objects, point, N, material)) return back_color;
 
     glm::vec3 reflect_dir = glm::reflect(dir, N);
-    glm::vec3 refract_dir = glm::refract(dir, N, material.refractive_index); 
+    glm::vec3 refract_dir = refract(dir, N, material.refractive_index); 
 
     float diffuse_intensity = 0;
     float specular_intensity = 0;

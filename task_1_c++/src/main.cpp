@@ -20,10 +20,10 @@ glm::vec3 normalize_color(const glm::vec3 &now) {
 
 
 void render(const std::vector<Object *> &objects, const std::vector<Light> &lights) {
-    const int   width  = 1920; //960; 
-    const int   height = 1080; //540;
-    //const int   width  = 960; 
-    //const int   height = 540;
+    //const int   width  = 1920; //960; 
+    //const int   height = 1080; //540;
+    const int   width  = 924; 
+    const int   height = 520;
 
     const float fov      = M_PI / 3.;
 
@@ -80,7 +80,7 @@ void render(const std::vector<Object *> &objects, const std::vector<Light> &ligh
 
 void first_scene() {
     Material        ivory(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.4, 0.4, 0.3),   50.);
-    Material        glass(1.5, glm::vec4(0.1,  1.0, 0.1, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
+    Material        glass(3.0, glm::vec4(0.05, 1.0, 0.4, 0.8), glm::vec3(0.6, 0.7, 0.8),  140.);
     Material   red_rubber(1.0, glm::vec4(0.9,  0.1, 0.0, 0.0), glm::vec3(0.3, 0.1, 0.1),   10.);
     Material   ivory_blue(1.0, glm::vec4(0.6,  0.3, 0.1, 0.0), glm::vec3(0.1, 0.1, 0.6),   50.);
     Material green_mirror(1.0, glm::vec4(0.4, 10.0, 0.8, 0.0), glm::vec3( .0,  .4,  .0), 1425.);
