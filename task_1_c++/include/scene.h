@@ -11,7 +11,7 @@
 
 
 static uint32_t threads_num = 8;
-static std::string out_file = "./out.ppm";
+static std::string out_file = "./out.bpm";
 static glm::vec3 back_color(0.1, 0.1, 0.1);
 
 
